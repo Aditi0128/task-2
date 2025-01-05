@@ -29,7 +29,7 @@
       border-radius: 12px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
       width: 400px;
-      height: 500px;
+      height: 600px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -109,11 +109,27 @@
     .winning-cell {
       background-color: #f39c12 !important;
     }
+
+    .mode-selection {
+      margin-bottom: 20px;
+    }
+
+    .mode-selection button {
+      background-color: #9b59b6;
+      margin: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="game-container">
     <h1>Tic Tac Toe</h1>
+    
+    <!-- Mode Selection -->
+    <div class="mode-selection">
+      <button id="player-vs-player">Player vs Player</button>
+      <button id="player-vs-ai">Player vs AI</button>
+    </div>
+
     <div class="game-board" id="game-board">
       <div class="cell" data-cell="0"></div>
       <div class="cell" data-cell="1"></div>
@@ -125,7 +141,8 @@
       <div class="cell" data-cell="7"></div>
       <div class="cell" data-cell="8"></div>
     </div>
-    <button id="reset">Reset Game</button>
+    
+    <button id="reset" class="hidden">Reset Game</button>
     <div id="game-message" class="hidden"></div>
   </div>
 
@@ -134,10 +151,12 @@
     const cells = document.querySelectorAll('.cell');
     const resetButton = document.getElementById('reset');
     const gameMessage = document.getElementById('game-message');
+    const modeSelection = document.querySelector('.mode-selection');
 
-    let currentPlayer = 'X';  // Player starts with X
-    let gameActive = true;
+    let currentPlayer = 'X';
+    let gameActive = false;
     let gameState = ['', '', '', '', '', '', '', '', ''];
+    let isPlayerVsAi = false;
 
     const winningCombinations = [
       [0, 1, 2],
@@ -149,6 +168,51 @@
       [0, 4, 8],
       [2, 4, 6]
     ];
+
+    // Mode selection (Player vs Player or Player vs AI)
+    document.getElementById('player-vs-player').addEventListener('click', () => {
+      isPlayerVsAi = false;
+      startGame();
+    });
+
+    document.getElementById('player-vs-ai').addEventListener('click', () => {
+      isPlayerVsAi = true;
+      startGame();
+    });
+
+    // Start the game
+    function startGame() {
+      gameState = ['', '', '', '', '', '', '', '', ''];
+      currentPlayer = 'X';
+      gameActive = true;
+      gameMessage.classList.add('hidden');
+      resetButton.classList.remove('hidden');
+      modeSelection.classList.add('hidden');
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('x', 'o', 'winning-cell');
+      });
+    }
+
+    // Handle user click
+    function handleClick(event) {
+      const index = event.target.getAttribute('data-cell');
+
+      if (gameState[index] !== '' || !gameActive) return;
+
+      gameState[index] = currentPlayer;
+      event.target.textContent = currentPlayer;
+      event.target.classList.add(currentPlayer.toLowerCase());
+
+      if (checkWin()) return;
+
+      checkDraw();
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+
+      if (isPlayerVsAi && currentPlayer === 'O') {
+        aiMove();
+      }
+    }
 
     // Check for winning conditions
     function checkWin() {
@@ -181,39 +245,7 @@
       }
     }
 
-    // Handle user click
-    function handleClick(event) {
-      const index = event.target.getAttribute('data-cell');
-      
-      if (gameState[index] !== '' || !gameActive) return;
-
-      gameState[index] = currentPlayer;
-      event.target.textContent = currentPlayer;
-      event.target.classList.add(currentPlayer.toLowerCase());
-
-      if (checkWin()) return;
-
-      checkDraw();
-      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-    }
-
-    // Reset game
-    function resetGame() {
-      gameState = ['', '', '', '', '', '', '', '', ''];
-      currentPlayer = 'X';
-      gameActive = true;
-      cells.forEach(cell => {
-        cell.textContent = '';
-        cell.classList.remove('x', 'o', 'winning-cell');
-        cell.style.backgroundColor = '#e3e3e3';
-      });
-      gameMessage.classList.add('hidden');
-    }
-
-    board.addEventListener('click', handleClick);
-    resetButton.addEventListener('click', resetGame);
-
-    // Optional: Add AI opponent functionality
+    // AI Move
     function aiMove() {
       const emptyCells = gameState.map((val, index) => val === '' ? index : null).filter(val => val !== null);
       const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
@@ -228,15 +260,21 @@
       currentPlayer = 'X';
     }
 
-    // Simulate AI turn after player
-    function simulateAiTurn() {
-      if (currentPlayer === 'O' && gameActive) {
-        setTimeout(aiMove, 500); // AI moves after 0.5s delay
-      }
+    // Reset game
+    function resetGame() {
+      gameState = ['', '', '', '', '', '', '', '', ''];
+      currentPlayer = 'X';
+      gameActive = true;
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('x', 'o', 'winning-cell');
+      });
+      gameMessage.classList.add('hidden');
     }
 
-    // Call simulateAiTurn after each player X turn
-    setInterval(simulateAiTurn, 1000);
+    board.addEventListener('click', handleClick);
+    resetButton.addEventListener('click', resetGame);
   </script>
 </body>
 </html>
+
